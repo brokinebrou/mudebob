@@ -1,0 +1,46 @@
+<% const apercu = pv.mime === 'application/pdf' || (pv.mime && pv.mime.startsWith('image/')); %>
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h2 class="h5"><%= pv.titre %></h2>
+        <dl class="dl-fiche mb-0">
+          <dt>Type</dt><dd><%= pv.type_reunion %></dd>
+          <dt>Date de la réunion</dt><dd><%= f.dateLongue(pv.date_reunion) %></dd>
+          <% if (pv.lieu) { %><dt>Lieu</dt><dd><%= pv.lieu %></dd><% } %>
+          <% if (pv.resume) { %><dt>Résumé</dt><dd style="white-space:pre-line"><%= pv.resume %></dd><% } %>
+          <dt>Fichier</dt><dd class="small"><%= pv.nom_original %> (<%= (pv.taille / 1024 / 1024).toFixed(2) %> Mo)</dd>
+          <% if (user.role === 'admin') { %>
+            <dt>Déposé</dt><dd class="small">par <%= pv.depose_par_id %> le <%= f.dateHeureFr(pv.depose_le) %></dd>
+          <% } %>
+        </dl>
+      </div>
+      <div class="card-footer bg-white d-grid gap-2 py-3">
+        <a href="/pv/<%= pv.id %>/fichier" class="btn btn-primary"><i class="bi bi-download"></i> Télécharger</a>
+        <% if (user.role === 'admin') { %>
+          <form method="post" action="/pv/<%= pv.id %>/visibilite" class="d-grid">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn btn-outline-secondary"><i class="bi <%= pv.visible_adherents ? 'bi-eye-slash' : 'bi-eye' %>"></i> <%= pv.visible_adherents ? 'Masquer aux adhérents' : 'Rendre visible aux adhérents' %></button>
+          </form>
+          <form method="post" action="/pv/<%= pv.id %>/supprimer" class="d-grid" data-confirm="Supprimer définitivement ce PV et son fichier ?">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Supprimer</button>
+          </form>
+        <% } %>
+        <a href="/pv" class="btn btn-light">Retour à la liste</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header">Aperçu</div>
+      <% if (pv.mime === 'application/pdf') { %>
+        <iframe src="/pv/<%= pv.id %>/fichier?apercu=1" title="Aperçu du PV" style="width:100%;height:75vh;border:0;border-radius:0 0 12px 12px"></iframe>
+      <% } else if (apercu) { %>
+        <div class="card-body text-center"><img src="/pv/<%= pv.id %>/fichier?apercu=1" alt="<%= pv.titre %>" class="img-fluid rounded"></div>
+      <% } else { %>
+        <div class="card-body empty-state"><i class="bi bi-file-earmark-word"></i>L'aperçu n'est pas disponible pour ce format. Téléchargez le fichier pour l'ouvrir.</div>
+      <% } %>
+    </div>
+  </div>
+</div>

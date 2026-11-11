@@ -1,0 +1,32 @@
+{
+  "name": "muntebo",
+  "version": "1.0.0",
+  "description": "MUDEBO (Mutuelle pour le Développement de Boniankro) - application de gestion (adhérents, cotisations, versements, PV)",
+  "main": "server.js",
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node scripts/demo.js",
+    "test": "node --test tests/e2e.test.js"
+  },
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.2",
+    "chart.js": "^4.6.1",
+    "ejs": "^7.0.2",
+    "exceljs": "^4.4.0",
+    "express": "^4.22.3",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "multer": "^2.5.0",
+    "pdfkit": "^0.20.2",
+    "qrcode": "^1.5.4"
+  }
+}

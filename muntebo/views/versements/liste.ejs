@@ -1,0 +1,71 @@
+<form class="filtres row g-2 align-items-end" method="get">
+  <div class="col-md-3">
+    <label class="form-label small text-muted mb-1">Recherche</label>
+    <input type="search" name="q" class="form-control" value="<%= filtres.q %>" placeholder="Adhérent, matricule, n° reçu">
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small text-muted mb-1">Du</label>
+    <input type="date" name="du" class="form-control" value="<%= filtres.du %>">
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small text-muted mb-1">Au</label>
+    <input type="date" name="au" class="form-control" value="<%= filtres.au %>">
+  </div>
+  <div class="col-4 col-md-1">
+    <label class="form-label small text-muted mb-1">Type</label>
+    <select name="type" class="form-select" data-autosubmit>
+      <option value="">Tous</option>
+      <option value="normale" <%= filtres.type === 'normale' ? 'selected' : '' %>>Normale</option>
+      <option value="exceptionnelle" <%= filtres.type === 'exceptionnelle' ? 'selected' : '' %>>Except.</option>
+    </select>
+  </div>
+  <div class="col-4 col-md-2">
+    <label class="form-label small text-muted mb-1">Mode</label>
+    <select name="mode" class="form-select" data-autosubmit>
+      <option value="">Tous</option>
+      <% MODES.forEach(m => { %><option <%= filtres.mode === m ? 'selected' : '' %>><%= m %></option><% }) %>
+    </select>
+  </div>
+  <div class="col-4 col-md-1">
+    <label class="form-label small text-muted mb-1">État</label>
+    <select name="etat" class="form-select" data-autosubmit>
+      <option value="">Valides</option>
+      <option value="annules" <%= filtres.etat === 'annules' ? 'selected' : '' %>>Annulés</option>
+      <option value="tous" <%= filtres.etat === 'tous' ? 'selected' : '' %>>Tous</option>
+    </select>
+  </div>
+  <div class="col-md-1 d-flex gap-1">
+    <button class="btn btn-outline-primary flex-fill" title="Filtrer"><i class="bi bi-funnel"></i></button>
+    <a href="/versements" class="btn btn-light" title="Réinitialiser"><i class="bi bi-x-lg"></i></a>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><%= liste.length %> versement(s) · Total : <span class="text-primary"><%= f.fcfa(total) %></span></span>
+    <div class="d-flex gap-2">
+      <a href="/exports/versements.xlsx?<%= new URLSearchParams(filtres).toString() %>" class="btn btn-sm btn-light"><i class="bi bi-file-earmark-excel text-success"></i> Exporter</a>
+      <a href="/versements/nouveau" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Nouveau versement</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead><tr><th>Date</th><th>N° reçu</th><th>Adhérent</th><th>Type</th><th>Objet</th><th>Mode</th><th class="text-end">Montant</th><th></th></tr></thead>
+      <tbody>
+      <% liste.forEach(v => { %>
+        <tr class="<%= v.annule ? 'annule' : '' %>">
+          <td class="text-nowrap"><%= f.dateFr(v.date_versement) %></td>
+          <td><a href="/versements/<%= v.id %>"><%= v.numero_recu %></a></td>
+          <td><a href="/adherents/<%= v.adherent_id %>"><%= v.nom %> <%= v.prenoms %></a><div class="small text-muted"><%= v.matricule %></div></td>
+          <td><span class="badge <%= v.type === 'normale' ? 'bg-soft-vert' : 'bg-soft-or' %>"><%= v.type === 'normale' ? 'Normale' : 'Exceptionnelle' %></span></td>
+          <td class="small"><%= v.type === 'normale' ? f.libellePeriode(v.periode) : v.exc_libelle %><% if (v.annule) { %> <span class="badge text-bg-danger">Annulé</span><% } %></td>
+          <td class="small"><%= v.mode %></td>
+          <td class="montant fw-semibold"><%= f.fcfa(v.montant) %></td>
+          <td class="text-end"><a href="/versements/<%= v.id %>/recu.pdf" target="_blank" class="btn btn-sm btn-light" title="Reçu PDF"><i class="bi bi-file-earmark-pdf text-danger"></i></a></td>
+        </tr>
+      <% }) %>
+      <% if (!liste.length) { %><tr><td colspan="8" class="empty-state"><i class="bi bi-inbox"></i>Aucun versement pour ces critères.</td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

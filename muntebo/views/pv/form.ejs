@@ -1,0 +1,47 @@
+<form method="post" action="/pv" enctype="multipart/form-data" class="card mx-auto" style="max-width:760px">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="card-header"><i class="bi bi-upload"></i> Déposer un procès-verbal</div>
+  <div class="card-body row g-3">
+    <% if (erreurs.length) { %>
+      <div class="col-12"><div class="alert alert-danger mb-0"><ul class="mb-0 ps-3"><% erreurs.forEach(e => { %><li><%= e %></li><% }) %></ul></div></div>
+    <% } %>
+    <div class="col-12">
+      <label class="form-label" for="titre">Titre <span class="text-danger">*</span></label>
+      <input class="form-control" id="titre" name="titre" value="<%= pv.titre || '' %>" required maxlength="150" placeholder="ex. PV de l'Assemblée générale ordinaire 2026">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label" for="type_reunion">Type de réunion <span class="text-danger">*</span></label>
+      <select class="form-select" id="type_reunion" name="type_reunion" required>
+        <option value="">Choisir…</option>
+        <% TYPES_REUNION.forEach(t => { %><option <%= pv.type_reunion === t ? 'selected' : '' %>><%= t %></option><% }) %>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label" for="date_reunion">Date de la réunion <span class="text-danger">*</span></label>
+      <input type="date" class="form-control" id="date_reunion" name="date_reunion" value="<%= pv.date_reunion || '' %>" required>
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="lieu">Lieu</label>
+      <input class="form-control" id="lieu" name="lieu" value="<%= pv.lieu || '' %>" maxlength="120">
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="resume">Résumé / principales décisions</label>
+      <textarea class="form-control" id="resume" name="resume" rows="4"><%= pv.resume || '' %></textarea>
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="fichier">Fichier du PV <span class="text-danger">*</span></label>
+      <input type="file" class="form-control" id="fichier" name="fichier" required accept=".pdf,.doc,.docx,.odt,.jpg,.jpeg,.png">
+      <div class="form-text">PDF, Word, ODT, JPG ou PNG — 20 Mo maximum.</div>
+    </div>
+    <div class="col-12">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="visible_adherents" name="visible_adherents" value="1" <%= pv.visible_adherents ? 'checked' : '' %>>
+        <label class="form-check-label" for="visible_adherents">Rendre ce PV visible par les adhérents dans leur espace</label>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-white d-flex justify-content-end gap-2 py-3">
+    <a href="/pv" class="btn btn-light">Annuler</a>
+    <button class="btn btn-primary"><i class="bi bi-cloud-upload"></i> Déposer</button>
+  </div>
+</form>

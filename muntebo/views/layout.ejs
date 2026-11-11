@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title ? title + ' · ' : '' %><%= params.nom_association %></title>
+  <link rel="icon" href="/public/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/public/css/muntebo.css">
+</head>
+<body>
+<%
+  const lien = (href, icone, libelle) => {
+    const actif = chemin === href || (href !== '/' && chemin.startsWith(href + '/')) || chemin.startsWith(href + '?');
+    return `<a href="${href}" class="${actif ? 'active' : ''}" title="${libelle}"><i class="bi ${icone}"></i><span>${libelle}</span></a>`;
+  };
+  const initiales = user ? (user.nom_complet || user.identifiant).split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase() : '';
+%>
+<aside class="mt-sidebar">
+  <a class="mt-brand mt-brand-logo" href="/" title="<%= params.nom_association %> — Accueil">
+    <img src="/public/img/logo.jpg" alt="Logo <%= params.nom_association %>" width="128" height="81">
+  </a>
+  <nav class="mt-nav">
+    <% if (user && user.role === 'admin') { %>
+      <%- lien('/tableau-de-bord', 'bi-speedometer2', 'Tableau de bord') %>
+      <div class="mt-nav-title">Gestion</div>
+      <%- lien('/adherents', 'bi-people', 'Adhérents') %>
+      <%- lien('/versements', 'bi-cash-coin', 'Versements') %>
+      <%- lien('/exceptionnelles', 'bi-lightning-charge', 'Cotisations exceptionnelles') %>
+      <%- lien('/pv', 'bi-file-earmark-text', 'PV des réunions') %>
+      <div class="mt-nav-title">Rapports</div>
+      <%- lien('/exports', 'bi-file-earmark-spreadsheet', 'Exports Excel') %>
+      <%- lien('/journal', 'bi-clock-history', "Journal d'activité") %>
+      <div class="mt-nav-title">Configuration</div>
+      <%- lien('/categories', 'bi-tags', 'Catégories et montants') %>
+      <%- lien('/utilisateurs', 'bi-person-gear', 'Utilisateurs') %>
+      <%- lien('/parametres', 'bi-gear', 'Paramètres') %>
+    <% } else if (user) { %>
+      <%- lien('/portail', 'bi-person-badge', 'Mon espace') %>
+      <%- lien('/pv', 'bi-file-earmark-text', 'PV des réunions') %>
+    <% } %>
+  </nav>
+  <% if (user) { %>
+  <div class="mt-sidebar-footer">
+    <div class="mt-avatar"><%= initiales %></div>
+    <div class="mt-user text-truncate">
+      <div class="text-white text-truncate"><%= user.nom_complet || user.identifiant %></div>
+      <div class="mt-user-role"><%= user.role === 'admin' ? 'Administrateur' : 'Adhérent' %></div>
+    </div>
+    <a href="/mot-de-passe" class="mt-icon-btn" title="Changer mon mot de passe" aria-label="Changer mon mot de passe"><i class="bi bi-key"></i></a>
+    <form method="post" action="/logout" class="m-0">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <button class="mt-icon-btn" title="Se déconnecter" aria-label="Se déconnecter"><i class="bi bi-box-arrow-right"></i></button>
+    </form>
+  </div>
+  <% } %>
+</aside>
+
+<div class="mt-main">
+  <header class="mt-topbar">
+    <button class="btn btn-light mt-burger" data-toggle-sidebar aria-label="Menu"><i class="bi bi-list"></i></button>
+    <h1 class="flex-grow-1 text-truncate"><%= title %></h1>
+    <% if (user && user.role === 'admin') { %>
+      <div class="autocomplete d-none d-md-block" style="width:280px">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input type="search" class="form-control" placeholder="Rechercher un adhérent…" data-autocomplete="/adherents/" autocomplete="off">
+        </div>
+      </div>
+      <a href="/versements/nouveau" class="btn btn-or btn-sm"><i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline">Versement</span></a>
+    <% } %>
+  </header>
+
+  <main class="mt-content">
+    <% flash.forEach(m => { %>
+      <div class="alert alert-<%= m.type %> alert-dismissible fade show" role="alert">
+        <%= m.message %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+      </div>
+    <% }) %>
+    <%- body %>
+  </main>
+  <footer class="mt-footer">© <%= new Date().getFullYear() %> <%= params.nom_association %> — <%= params.slogan %></footer>
+</div>
+
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/vendor/chart.js/chart.umd.js"></script>
+<script src="/public/js/app.js"></script>
+</body>
+</html>

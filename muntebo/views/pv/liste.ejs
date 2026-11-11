@@ -1,0 +1,48 @@
+<form class="filtres row g-2 align-items-end" method="get">
+  <div class="col-md-5">
+    <label class="form-label small text-muted mb-1">Recherche</label>
+    <input type="search" name="q" class="form-control" value="<%= filtres.q %>" placeholder="Titre, résumé, lieu">
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small text-muted mb-1">Année</label>
+    <select name="annee" class="form-select" data-autosubmit>
+      <option value="">Toutes</option>
+      <% annees.forEach(a => { %><option <%= filtres.annee === a ? 'selected' : '' %>><%= a %></option><% }) %>
+    </select>
+  </div>
+  <div class="col-6 col-md-3">
+    <label class="form-label small text-muted mb-1">Type de réunion</label>
+    <select name="type" class="form-select" data-autosubmit>
+      <option value="">Tous</option>
+      <% TYPES_REUNION.forEach(t => { %><option <%= filtres.type === t ? 'selected' : '' %>><%= t %></option><% }) %>
+    </select>
+  </div>
+  <div class="col-md-2 d-flex gap-2">
+    <button class="btn btn-outline-primary flex-fill"><i class="bi bi-funnel"></i></button>
+    <a href="/pv" class="btn btn-light"><i class="bi bi-x-lg"></i></a>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><%= liste.length %> procès-verba<%= liste.length > 1 ? 'ux' : 'l' %></span>
+    <% if (user.role === 'admin') { %><a href="/pv/nouveau" class="btn btn-sm btn-primary"><i class="bi bi-upload"></i> Déposer un PV</a><% } %>
+  </div>
+  <ul class="list-group list-group-flush">
+    <% liste.forEach(p => { %>
+      <li class="list-group-item d-flex gap-3 align-items-center py-3">
+        <div class="pv-icone"><i class="bi <%= p.mime === 'application/pdf' ? 'bi-file-earmark-pdf' : p.mime && p.mime.startsWith('image/') ? 'bi-file-earmark-image' : 'bi-file-earmark-word' %>"></i></div>
+        <div class="flex-grow-1 min-w-0">
+          <a href="/pv/<%= p.id %>" class="fw-semibold"><%= p.titre %></a>
+          <div class="small text-muted"><%= p.type_reunion %> · <%= f.dateLongue(p.date_reunion) %><%= p.lieu ? ' · ' + p.lieu : '' %></div>
+          <% if (p.resume) { %><div class="small text-truncate" style="max-width:700px"><%= p.resume %></div><% } %>
+        </div>
+        <% if (user.role === 'admin') { %>
+          <span class="badge <%= p.visible_adherents ? 'bg-soft-vert' : 'text-bg-light' %> d-none d-md-inline"><i class="bi <%= p.visible_adherents ? 'bi-eye' : 'bi-eye-slash' %>"></i> <%= p.visible_adherents ? 'Visible adhérents' : 'Bureau uniquement' %></span>
+        <% } %>
+        <a href="/pv/<%= p.id %>/fichier" class="btn btn-sm btn-light" title="Télécharger"><i class="bi bi-download"></i></a>
+      </li>
+    <% }) %>
+    <% if (!liste.length) { %><li class="list-group-item empty-state"><i class="bi bi-folder2-open"></i>Aucun procès-verbal.</li><% } %>
+  </ul>
+</div>

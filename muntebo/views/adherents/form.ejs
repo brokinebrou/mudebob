@@ -1,0 +1,122 @@
+<% const edition = !!a.id; const v = (k) => a[k] == null ? '' : a[k]; %>
+<form method="post" action="<%= edition ? '/adherents/' + a.id : '/adherents' %>" enctype="multipart/form-data" class="row g-3">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% if (erreurs.length) { %>
+    <div class="col-12"><div class="alert alert-danger mb-0"><ul class="mb-0 ps-3"><% erreurs.forEach(e => { %><li><%= e %></li><% }) %></ul></div></div>
+  <% } %>
+
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-person-vcard me-1"></i> Identité <% if (edition) { %><span class="text-muted fw-normal">— <%= a.matricule %></span><% } %></div>
+      <div class="card-body row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="nom">Nom <span class="text-danger">*</span></label>
+          <input class="form-control" id="nom" name="nom" value="<%= v('nom') %>" required maxlength="80">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="prenoms">Prénoms <span class="text-danger">*</span></label>
+          <input class="form-control" id="prenoms" name="prenoms" value="<%= v('prenoms') %>" required maxlength="120">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="sexe">Sexe</label>
+          <select class="form-select" id="sexe" name="sexe">
+            <option value="">—</option>
+            <option value="M" <%= a.sexe === 'M' ? 'selected' : '' %>>Masculin</option>
+            <option value="F" <%= a.sexe === 'F' ? 'selected' : '' %>>Féminin</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="date_naissance">Date de naissance</label>
+          <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="<%= v('date_naissance') %>" max="<%= f.aujourdHui() %>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="lieu_naissance">Lieu de naissance</label>
+          <input class="form-control" id="lieu_naissance" name="lieu_naissance" value="<%= v('lieu_naissance') %>" maxlength="100" placeholder="ex. Boniankro">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="profession">Profession</label>
+          <input class="form-control" id="profession" name="profession" value="<%= v('profession') %>" maxlength="80">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="telephone">Téléphone</label>
+          <input type="tel" class="form-control" id="telephone" name="telephone" value="<%= v('telephone') %>" placeholder="+225 07 00 00 00 00">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="email">E-mail</label>
+          <input type="email" class="form-control" id="email" name="email" value="<%= v('email') %>">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="adresse">Adresse / lieu de résidence</label>
+          <input class="form-control" id="adresse" name="adresse" value="<%= v('adresse') %>" maxlength="200">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="bi bi-people me-1"></i> Famille</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label" for="famille">Famille</label>
+          <input class="form-control" id="famille" name="famille" value="<%= v('famille') %>" maxlength="100" placeholder="Nom de la grande famille d'appartenance">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="nom_pere">Nom et prénoms du père</label>
+          <input class="form-control" id="nom_pere" name="nom_pere" value="<%= v('nom_pere') %>" maxlength="150">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="nom_mere">Nom et prénoms de la mère</label>
+          <input class="form-control" id="nom_mere" name="nom_mere" value="<%= v('nom_mere') %>" maxlength="150">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-camera me-1"></i> Photo</div>
+      <div class="card-body text-center">
+        <div class="photo-cadre mx-auto mb-3">
+          <img id="apercu-photo" alt="Photo de l'adhérent" <%= a.photo && edition ? '' : 'hidden' %> src="<%= a.photo && edition ? '/adherents/' + a.id + '/photo' : '' %>">
+          <i class="bi bi-person-bounding-box" id="photo-vide" <%= a.photo && edition ? 'hidden' : '' %>></i>
+        </div>
+        <input type="file" class="form-control form-control-sm" id="photo" name="photo" accept=".jpg,.jpeg,.png,.webp" data-apercu="apercu-photo">
+        <div class="form-text">JPG, PNG ou WEBP — 5 Mo maximum.</div>
+        <% if (edition && a.photo) { %>
+          <div class="form-check text-start mt-2">
+            <input class="form-check-input" type="checkbox" id="retirer_photo" name="retirer_photo" value="1">
+            <label class="form-check-label small" for="retirer_photo">Retirer la photo actuelle</label>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-card-checklist me-1"></i> Adhésion</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label" for="categorie_id">Catégorie <span class="text-danger">*</span></label>
+          <select class="form-select" id="categorie_id" name="categorie_id" required>
+            <option value="">Choisir…</option>
+            <% categories.forEach(c => { %>
+              <option value="<%= c.id %>" <%= Number(a.categorie_id) === c.id ? 'selected' : '' %>><%= c.libelle %> — <%= f.fcfa(c.montant) %> / <%= params.periodicite === 'annuelle' ? 'an' : 'mois' %></option>
+            <% }) %>
+          </select>
+          <% if (edition) { %><div class="form-text">Un changement de catégorie s'applique à partir de la prochaine période.</div><% } %>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="date_adhesion">Date d'adhésion <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" id="date_adhesion" name="date_adhesion" value="<%= v('date_adhesion') %>" required>
+          <div class="form-text">Les cotisations sont dues à partir de la période d'adhésion.</div>
+        </div>
+        <div>
+          <label class="form-label" for="observations">Observations</label>
+          <textarea class="form-control" id="observations" name="observations" rows="3"><%= v('observations') %></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="d-grid gap-2">
+      <button class="btn btn-primary"><i class="bi bi-check2"></i> <%= edition ? 'Enregistrer les modifications' : "Enregistrer l'adhérent" %></button>
+      <a href="<%= edition ? '/adherents/' + a.id : '/adherents' %>" class="btn btn-light">Annuler</a>
+    </div>
+  </div>
+</form>

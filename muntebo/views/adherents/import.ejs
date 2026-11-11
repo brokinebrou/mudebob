@@ -1,0 +1,128 @@
+<% if (!analyse) { %>
+<div class="row g-3">
+  <div class="col-lg-7">
+    <form method="post" action="/adherents/importer" enctype="multipart/form-data" class="card">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <div class="card-header"><span class="badge rounded-pill text-bg-dark me-2">1</span>Choisir le fichier</div>
+      <div class="card-body">
+        <% if (erreur) { %><div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> <%= erreur %></div><% } %>
+        <div class="mb-3">
+          <label class="form-label" for="fichier">Fichier Excel (.xlsx) ou CSV (.csv)</label>
+          <input type="file" class="form-control" id="fichier" name="fichier" accept=".xlsx,.csv" required>
+          <div class="form-text">5 Mo maximum. La première ligne doit contenir les titres des colonnes.</div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label" for="categorie_id">Catégorie à attribuer</label>
+            <select class="form-select" id="categorie_id" name="categorie_id" required>
+              <option value="">Choisir…</option>
+              <% categories.forEach(c => { %><option value="<%= c.id %>" <%= Number(options.categorie_id) === c.id ? 'selected' : '' %>><%= c.libelle %> — <%= f.fcfa(c.montant) %></option><% }) %>
+            </select>
+            <div class="form-text">Utilisée si le fichier n'a pas de colonne « Catégorie ».</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="date_adhesion">Date d'adhésion par défaut</label>
+            <input type="date" class="form-control" id="date_adhesion" name="date_adhesion" value="<%= options.date_adhesion %>">
+            <div class="form-text">Si absente du fichier, elle est d'abord déduite du matricule (MU-<strong>09-25</strong>-00004 → 01/09/2025).</div>
+          </div>
+        </div>
+        <div class="border rounded p-3 mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="remplacer" id="mode-ajouter" value="0" <%= !options.remplacer ? 'checked' : '' %>>
+            <label class="form-check-label" for="mode-ajouter"><strong>Ajouter</strong> au fichier existant
+              <div class="small text-muted">Les matricules déjà présents sont mis à jour, les nouveaux sont ajoutés. Rien n'est supprimé.</div></label>
+          </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" name="remplacer" id="mode-remplacer" value="1" <%= options.remplacer ? 'checked' : '' %>>
+            <label class="form-check-label" for="mode-remplacer"><strong class="text-danger">Remplacer</strong> tous les adhérents existants
+              <div class="small text-muted">Supprime les <%= existants.adherents %> adhérent(s) actuel(s), leurs <%= existants.versements %> versement(s), les cotisations exceptionnelles et les <%= existants.comptes %> accès adhérents. Une sauvegarde de la base est faite automatiquement avant.</div></label>
+          </div>
+        </div>
+        <button class="btn btn-primary"><i class="bi bi-eye"></i> Analyser le fichier (aperçu)</button>
+        <span class="small text-muted ms-2">Rien n'est enregistré à cette étape.</span>
+      </div>
+    </form>
+  </div>
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-info-circle"></i> Préparer le fichier</div>
+      <div class="card-body small">
+        <p>Les colonnes sont reconnues par leur titre, dans n'importe quel ordre :</p>
+        <table class="table table-sm">
+          <tbody>
+            <tr><td><strong>Nom</strong>, <strong>Prénoms</strong></td><td>obligatoires</td></tr>
+            <tr><td>Mat. / Matricule</td><td>conservé ; sinon généré</td></tr>
+            <tr><td>Sexe</td><td>Masculin / Féminin, M / F</td></tr>
+            <tr><td>Né le</td><td>JJ/MM/AAAA</td></tr>
+            <tr><td>Lieu, Profession, Tel, Résidence, Famille</td><td></td></tr>
+            <tr><td>Père, Mère, E-mail</td><td>facultatifs</td></tr>
+            <tr><td>Date d'adhésion, Catégorie</td><td>facultatifs</td></tr>
+          </tbody>
+        </table>
+        <a href="/adherents/importer/modele.xlsx" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-excel"></i> Télécharger un modèle Excel</a>
+        <p class="mt-3 mb-0 text-muted">Le fichier exporté depuis <em>Exports Excel → Liste des adhérents</em> peut aussi être réimporté.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% } else { const r = analyse.resume; %>
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-icon bg-soft-bleu"><i class="bi bi-list-ol"></i></div><div><div class="stat-label">Lignes lues</div><div class="stat-value"><%= r.total %></div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-icon bg-soft-vert"><i class="bi bi-person-plus"></i></div><div><div class="stat-label">À créer</div><div class="stat-value"><%= r.creer %></div><% if (r.maj) { %><div class="small text-muted">+ <%= r.maj %> mise(s) à jour</div><% } %></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-icon bg-soft-or"><i class="bi bi-exclamation-triangle"></i></div><div><div class="stat-label">Avec remarques</div><div class="stat-value"><%= r.avertis %></div><div class="small text-muted">importées quand même</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card stat-card"><div class="stat-icon bg-soft-rouge"><i class="bi bi-x-octagon"></i></div><div><div class="stat-label">Ignorées (erreur)</div><div class="stat-value"><%= r.ignorer %></div></div></div></div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body small">
+    <strong>Fichier :</strong> <%= options.nomFichier %> ·
+    <strong>Colonnes reconnues :</strong> <% analyse.reconnues.forEach((c, i) => { %><span class="badge bg-soft-vert me-1"><%= c.titre %> → <%= c.libelle %></span><% }) %>
+    <% if (analyse.ignorees.length) { %><br><strong>Colonnes ignorées :</strong> <% analyse.ignorees.forEach(t => { %><span class="badge text-bg-light me-1"><%= t %></span><% }) %><% } %>
+  </div>
+</div>
+
+<form method="post" action="/adherents/importer/confirmer" class="card mb-3 <%= options.remplacer ? 'border-danger' : '' %>">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="card-body d-flex flex-wrap align-items-center gap-3">
+    <% if (options.remplacer) { %>
+      <div class="flex-grow-1 text-danger">
+        <i class="bi bi-exclamation-octagon-fill"></i> <strong>Mode remplacement :</strong> les <%= existants.adherents %> adhérent(s), <%= existants.versements %> versement(s), les cotisations exceptionnelles et les <%= existants.comptes %> accès adhérents actuels seront supprimés (après sauvegarde automatique).
+        <div class="mt-2 d-flex align-items-center gap-2"><label for="confirmation" class="small text-body">Tapez <strong>REMPLACER</strong> pour confirmer :</label>
+          <input class="form-control form-control-sm" style="max-width:160px" id="confirmation" name="confirmation" autocomplete="off" required pattern="REMPLACER"></div>
+      </div>
+    <% } else { %>
+      <div class="flex-grow-1">Vérifiez l'aperçu ci-dessous, puis confirmez. <span class="text-muted">Mode : ajout et mise à jour, rien n'est supprimé.</span></div>
+    <% } %>
+    <a href="/adherents/importer" class="btn btn-light">Annuler</a>
+    <button class="btn <%= options.remplacer ? 'btn-danger' : 'btn-primary' %>" <%= r.creer + r.maj === 0 ? 'disabled' : '' %>><i class="bi bi-check2-circle"></i> Importer <%= r.creer + r.maj %> adhérent(s)</button>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-header">Aperçu</div>
+  <div class="table-responsive" style="max-height:60vh">
+    <table class="table table-sm table-hover">
+      <thead style="position:sticky;top:0;z-index:1"><tr><th>Ligne</th><th>Action</th><th>Matricule</th><th>Nom et prénoms</th><th>Sexe</th><th>Naissance</th><th>Profession</th><th>Téléphone</th><th>Résidence</th><th>Famille</th><th>Adhésion</th><th>Remarques</th></tr></thead>
+      <tbody>
+      <% analyse.lignes.forEach(l => { const d = l.donnees; %>
+        <tr class="<%= l.action === 'ignorer' ? 'table-danger' : l.avertissements.length ? 'table-warning' : '' %>">
+          <td class="text-muted"><%= l.numeroLigne %></td>
+          <td><% if (l.action === 'creer') { %><span class="badge bg-soft-vert">Créer</span><% } else if (l.action === 'maj') { %><span class="badge bg-soft-bleu">Mettre à jour</span><% } else { %><span class="badge text-bg-danger">Ignorer</span><% } %></td>
+          <td class="text-nowrap small"><%= d.matricule || '(auto)' %></td>
+          <td class="text-nowrap"><strong><%= d.nom %></strong> <%= d.prenoms %></td>
+          <td><%= d.sexe || '' %></td>
+          <td class="text-nowrap small"><%= f.dateFr(d.date_naissance) %><%= d.lieu_naissance ? ' · ' + d.lieu_naissance : '' %></td>
+          <td class="small"><%= d.profession %></td>
+          <td class="text-nowrap small"><%= d.telephone %></td>
+          <td class="small"><%= d.adresse %></td>
+          <td class="small"><%= d.famille %></td>
+          <td class="text-nowrap small"><%= f.dateFr(d.date_adhesion) %></td>
+          <td class="small"><% l.erreurs.forEach(e => { %><div class="text-danger"><%= e %></div><% }) %><% l.avertissements.forEach(a => { %><div class="text-warning-emphasis"><%= a %></div><% }) %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% } %>

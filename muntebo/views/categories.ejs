@@ -1,0 +1,60 @@
+<% const unite = params.periodicite === 'annuelle' ? 'an' : 'mois'; %>
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">Catégories d'adhérents</div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>Catégorie</th><th>Description</th><th class="text-end">Montant / <%= unite %></th><th class="text-center">Actifs</th><th></th></tr></thead>
+          <tbody>
+          <% categories.forEach(c => { %>
+            <tr>
+              <td class="fw-semibold"><%= c.libelle %></td>
+              <td class="small text-muted"><%= c.description %></td>
+              <td class="montant fw-semibold"><%= f.fcfa(c.montant) %></td>
+              <td class="text-center"><%= c.nb_actifs %></td>
+              <td class="text-end text-nowrap">
+                <a href="/categories?modifier=<%= c.id %>" class="btn btn-sm btn-light" title="Modifier"><i class="bi bi-pencil"></i></a>
+                <% if (!c.nb_total) { %>
+                  <form method="post" action="/categories/<%= c.id %>/supprimer" class="d-inline" data-confirm="Supprimer cette catégorie ?">
+                    <input type="hidden" name="_csrf" value="<%= csrf %>">
+                    <button class="btn btn-sm btn-light" title="Supprimer"><i class="bi bi-trash text-danger"></i></button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="alert alert-info small mt-3"><i class="bi bi-info-circle"></i> Le montant d'une catégorie s'applique à toutes les périodes de ses adhérents. Pour un nouveau tarif sans modifier le passé, créez une nouvelle catégorie et réaffectez les adhérents : le changement s'applique à partir de la période suivante.</div>
+  </div>
+  <div class="col-lg-4">
+    <form method="post" action="<%= edition ? '/categories/' + edition.id : '/categories' %>" class="card">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <div class="card-header"><%= edition ? 'Modifier la catégorie' : 'Nouvelle catégorie' %></div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label" for="libelle">Libellé</label>
+          <input class="form-control" id="libelle" name="libelle" value="<%= edition ? edition.libelle : '' %>" required maxlength="60">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="montant">Montant de la cotisation normale</label>
+          <div class="input-group">
+            <input type="number" class="form-control" id="montant" name="montant" min="0" value="<%= edition ? edition.montant : '' %>" required>
+            <span class="input-group-text">FCFA / <%= unite %></span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="description">Description</label>
+          <input class="form-control" id="description" name="description" value="<%= edition ? edition.description : '' %>" maxlength="150">
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary flex-fill"><%= edition ? 'Enregistrer' : 'Ajouter' %></button>
+          <% if (edition) { %><a href="/categories" class="btn btn-light">Annuler</a><% } %>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

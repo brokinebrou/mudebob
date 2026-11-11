@@ -1,0 +1,78 @@
+<form method="post" action="/parametres" class="row g-3">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% if (erreurs.length) { %>
+    <div class="col-12"><div class="alert alert-danger mb-0"><ul class="mb-0 ps-3"><% erreurs.forEach(e => { %><li><%= e %></li><% }) %></ul></div></div>
+  <% } %>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">L'association</div>
+      <div class="card-body row g-3">
+        <div class="col-12"><label class="form-label" for="nom_association">Nom</label><input class="form-control" id="nom_association" name="nom_association" value="<%= p.nom_association %>" required></div>
+        <div class="col-12"><label class="form-label" for="slogan">Devise / slogan</label><input class="form-control" id="slogan" name="slogan" value="<%= p.slogan %>"></div>
+        <div class="col-12"><label class="form-label" for="adresse">Adresse / siège</label><input class="form-control" id="adresse" name="adresse" value="<%= p.adresse %>"></div>
+        <div class="col-md-6"><label class="form-label" for="telephone">Téléphone <span class="text-muted small">(contact imprimé sur les cartes)</span></label><input class="form-control" id="telephone" name="telephone" value="<%= p.telephone %>"></div>
+        <div class="col-md-6"><label class="form-label" for="email">E-mail</label><input class="form-control" id="email" name="email" value="<%= p.email %>"></div>
+        <div class="col-12"><label class="form-label" for="tresorier">Nom du trésorier <span class="text-muted small">(imprimé sur les reçus)</span></label><input class="form-control" id="tresorier" name="tresorier" value="<%= p.tresorier %>"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Cotisations et numérotation</div>
+      <div class="card-body row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="periodicite">Périodicité des cotisations normales</label>
+          <select class="form-select" id="periodicite" name="periodicite" <%= aDesVersements ? 'disabled' : '' %>>
+            <option value="mensuelle" <%= p.periodicite === 'mensuelle' ? 'selected' : '' %>>Mensuelle</option>
+            <option value="annuelle" <%= p.periodicite === 'annuelle' ? 'selected' : '' %>>Annuelle</option>
+          </select>
+          <% if (aDesVersements) { %>
+            <input type="hidden" name="periodicite" value="<%= p.periodicite %>">
+            <div class="form-text">Verrouillée : des cotisations ont déjà été encaissées.</div>
+          <% } %>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="annee_demarrage">Année de démarrage du suivi</label>
+          <input type="number" class="form-control" id="annee_demarrage" name="annee_demarrage" value="<%= p.annee_demarrage %>" min="1990" max="2100">
+          <div class="form-text">Aucune cotisation n'est due avant cette année.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="prefixe_recu">Préfixe des reçus</label>
+          <input class="form-control" id="prefixe_recu" name="prefixe_recu" value="<%= p.prefixe_recu %>" maxlength="6">
+          <div class="form-text">ex. <%= p.prefixe_recu %>-<%= new Date().getFullYear() %>-00001</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="prefixe_matricule">Préfixe des matricules</label>
+          <input class="form-control" id="prefixe_matricule" name="prefixe_matricule" value="<%= p.prefixe_matricule %>" maxlength="6">
+          <div class="form-text">Format : <%= p.prefixe_matricule %>-MM-AA-NNNNN (mois et année d'adhésion + numéro d'ordre), ex. <%= p.prefixe_matricule %>-09-25-00004</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 text-end"><button class="btn btn-primary px-4"><i class="bi bi-check2"></i> Enregistrer les paramètres</button></div>
+</form>
+
+<div class="card mt-3">
+  <div class="card-header"><i class="bi bi-person-vcard"></i> Carte de membre : signature du président</div>
+  <div class="card-body d-flex flex-wrap align-items-center gap-4">
+    <div class="border rounded bg-white d-flex align-items-center justify-content-center" style="width:220px;height:76px">
+      <% if (signature) { %><img src="/parametres/signature?v=<%= Date.now() %>" alt="Signature du président" style="max-width:210px;max-height:70px">
+      <% } else { %><span class="text-muted small">Aucune signature</span><% } %>
+    </div>
+    <form method="post" action="/parametres/signature" enctype="multipart/form-data" class="d-flex flex-wrap align-items-end gap-2">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <div>
+        <label class="form-label small mb-1" for="signature">Image de la signature (PNG ou JPG, fond blanc ou transparent)</label>
+        <input type="file" class="form-control form-control-sm" id="signature" name="signature" accept=".png,.jpg,.jpeg" required>
+      </div>
+      <button class="btn btn-sm btn-primary"><i class="bi bi-upload"></i> Enregistrer</button>
+    </form>
+    <% if (signature) { %>
+    <form method="post" action="/parametres/signature/supprimer">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <button class="btn btn-sm btn-outline-danger" data-confirm="Retirer la signature des cartes de membre ?"><i class="bi bi-trash"></i> Retirer</button>
+    </form>
+    <% } %>
+    <div class="small text-muted w-100">Le numéro de contact imprimé en bas de la carte est le <strong>Téléphone</strong> de l'association ci-dessus. Sans signature enregistrée, l'emplacement reste libre pour signer à la main.</div>
+  </div>
+</div>

@@ -1,0 +1,75 @@
+<form class="filtres row g-2 align-items-end" method="get">
+  <div class="col-md-4">
+    <label class="form-label small text-muted mb-1">Recherche</label>
+    <input type="search" name="q" class="form-control" value="<%= filtres.q %>" placeholder="Nom, prénoms, matricule, téléphone">
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small text-muted mb-1">Catégorie</label>
+    <select name="categorie" class="form-select" data-autosubmit>
+      <option value="">Toutes</option>
+      <% categories.forEach(c => { %><option value="<%= c.id %>" <%= String(c.id) === String(filtres.categorie) ? 'selected' : '' %>><%= c.libelle %></option><% }) %>
+    </select>
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small text-muted mb-1">Statut</label>
+    <select name="statut" class="form-select" data-autosubmit>
+      <option value="">Tous</option>
+      <% Object.entries(f.STATUTS).forEach(([k, v]) => { %><option value="<%= k %>" <%= filtres.statut === k ? 'selected' : '' %>><%= v %></option><% }) %>
+    </select>
+  </div>
+  <div class="col-6 col-md-2">
+    <label class="form-label small text-muted mb-1">Situation</label>
+    <select name="situation" class="form-select" data-autosubmit>
+      <option value="">Toutes</option>
+      <option value="a_jour" <%= filtres.situation === 'a_jour' ? 'selected' : '' %>>À jour</option>
+      <option value="retard" <%= filtres.situation === 'retard' ? 'selected' : '' %>>En retard</option>
+    </select>
+  </div>
+  <div class="col-6 col-md-2 d-flex gap-2">
+    <button class="btn btn-outline-primary flex-fill"><i class="bi bi-funnel"></i> Filtrer</button>
+    <a href="/adherents" class="btn btn-light" title="Réinitialiser"><i class="bi bi-x-lg"></i></a>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><%= liste.length %> adhérent<%= liste.length > 1 ? 's' : '' %></span>
+    <div class="d-flex gap-2">
+      <a href="/adherents/importer" class="btn btn-sm btn-light"><i class="bi bi-upload text-primary"></i> Importer</a>
+      <% if (liste.length) { %><a href="/adherents/cartes.pdf?<%= new URLSearchParams(filtres).toString() %>" target="_blank" class="btn btn-sm btn-light" title="Imprimer les cartes des adhérents affichés (10 par page A4)"><i class="bi bi-person-vcard text-success"></i> Cartes (<%= liste.length %>)</a><% } %>
+      <a href="/exports/adherents.xlsx" class="btn btn-sm btn-light"><i class="bi bi-file-earmark-excel text-success"></i> Exporter</a>
+      <a href="/adherents/nouveau" class="btn btn-sm btn-primary"><i class="bi bi-person-plus"></i> Nouvel adhérent</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr><th>Matricule</th><th>Nom et prénoms</th><th>Téléphone</th><th>Catégorie</th><th>Adhésion</th><th>Statut</th><th>Situation</th><th class="text-end">Reste dû</th><th></th></tr>
+      </thead>
+      <tbody>
+      <% liste.forEach(a => { %>
+        <tr>
+          <td class="text-muted small"><%= a.matricule %></td>
+          <td><a href="/adherents/<%= a.id %>" class="fw-semibold"><%= a.nom %> <%= a.prenoms %></a></td>
+          <td class="text-nowrap"><%= a.telephone %></td>
+          <td><%= a.categorie %></td>
+          <td class="text-nowrap"><%= f.dateFr(a.date_adhesion) %></td>
+          <td><span class="badge badge-etat statut-<%= a.statut %>"><%= f.STATUTS[a.statut] %></span></td>
+          <td>
+            <% if (a.resteTotal === 0) { %><span class="badge badge-etat etat-a_jour"><i class="bi bi-check2"></i> À jour</span>
+            <% } else { %><span class="badge badge-etat etat-impaye"><%= a.situation.periodesImpayees %> période(s)</span><% } %>
+          </td>
+          <td class="montant <%= a.resteTotal ? 'text-danger fw-semibold' : 'text-muted' %>"><%= f.fcfa(a.resteTotal) %></td>
+          <td class="text-end text-nowrap">
+            <a href="/versements/nouveau?adherent=<%= a.id %>" class="btn btn-sm btn-light" title="Enregistrer un versement"><i class="bi bi-cash-coin"></i></a>
+            <a href="/adherents/<%= a.id %>/modifier" class="btn btn-sm btn-light" title="Modifier"><i class="bi bi-pencil"></i></a>
+          </td>
+        </tr>
+      <% }) %>
+      <% if (!liste.length) { %>
+        <tr><td colspan="9" class="empty-state"><i class="bi bi-people"></i>Aucun adhérent ne correspond à ces critères.<br><a href="/adherents/nouveau" class="btn btn-primary btn-sm mt-3">Enregistrer un adhérent</a></td></tr>
+      <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

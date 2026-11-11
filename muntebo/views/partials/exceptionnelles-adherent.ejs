@@ -1,0 +1,26 @@
+<%# Variables : exceptionnelles %>
+<% if (exceptionnelles.length) { %>
+<div class="table-responsive">
+  <table class="table">
+    <thead><tr><th>Cotisation</th><th>Échéance</th><th class="text-end">Dû</th><th class="text-end">Versé</th><th class="text-end">Reste</th><th>Situation</th></tr></thead>
+    <tbody>
+    <% exceptionnelles.forEach(e => { %>
+      <tr>
+        <td class="fw-semibold"><%= e.libelle %><% if (e.motif) { %><div class="small text-muted fw-normal"><%= e.motif %></div><% } %></td>
+        <td class="text-nowrap"><%= e.date_echeance ? f.dateFr(e.date_echeance) : '—' %></td>
+        <td class="montant"><%= f.fcfa(e.du) %></td>
+        <td class="montant"><%= f.fcfa(e.paye) %></td>
+        <td class="montant <%= e.reste ? 'text-danger fw-semibold' : '' %>"><%= f.fcfa(e.reste) %></td>
+        <td>
+          <% if (e.reste === 0) { %><span class="badge badge-etat etat-a_jour">Payé</span>
+          <% } else if (e.paye > 0) { %><span class="badge badge-etat etat-partiel">Partiel</span>
+          <% } else { %><span class="badge badge-etat etat-impaye">Non payé</span><% } %>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } else { %>
+  <div class="empty-state"><i class="bi bi-lightning"></i>Aucune cotisation exceptionnelle.</div>
+<% } %>

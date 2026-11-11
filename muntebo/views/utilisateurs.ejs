@@ -1,0 +1,78 @@
+<% if (mdpTemp) { %>
+  <div class="alert alert-warning">
+    Nouveau mot de passe provisoire pour <strong><%= mdpTemp.identifiant %></strong> : <span class="mdp-temp"><%= mdpTemp.mdp %></span>
+    <button type="button" class="btn btn-sm btn-light ms-1" data-copy="<%= mdpTemp.mdp %>"><i class="bi bi-clipboard"></i></button>
+    <div class="small mt-1">Il ne sera plus affiché. L'utilisateur devra le changer à sa prochaine connexion.</div>
+  </div>
+<% } %>
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header">Administrateurs (membres du bureau)</div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>Identifiant</th><th>Nom</th><th>Dernière connexion</th><th>État</th><th></th></tr></thead>
+          <tbody>
+          <% admins.forEach(u => { %>
+            <tr>
+              <td class="fw-semibold"><%= u.identifiant %><%= u.id === user.id ? ' (vous)' : '' %></td>
+              <td><%= u.nom_complet %></td>
+              <td class="small"><%= u.dernier_login ? f.dateHeureFr(u.dernier_login) : 'jamais' %></td>
+              <td><span class="badge <%= u.actif ? 'text-bg-success' : 'text-bg-secondary' %>"><%= u.actif ? 'Actif' : 'Désactivé' %></span></td>
+              <td class="text-end text-nowrap">
+                <form method="post" action="/utilisateurs/<%= u.id %>/reinitialiser" class="d-inline" data-confirm="Générer un nouveau mot de passe provisoire pour <%= u.identifiant %> ?">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-light" title="Réinitialiser le mot de passe"><i class="bi bi-key"></i></button>
+                </form>
+                <% if (u.id !== user.id) { %>
+                <form method="post" action="/utilisateurs/<%= u.id %>/actif" class="d-inline">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-light" title="<%= u.actif ? 'Désactiver' : 'Activer' %>"><i class="bi <%= u.actif ? 'bi-person-dash' : 'bi-person-check' %>"></i></button>
+                </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Comptes des adhérents</div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>Identifiant</th><th>Adhérent</th><th>Dernière connexion</th><th>État</th><th></th></tr></thead>
+          <tbody>
+          <% adherents.forEach(u => { %>
+            <tr>
+              <td><%= u.identifiant %></td>
+              <td><a href="/adherents/<%= u.adherent_id %>"><%= u.nom %> <%= u.prenoms %></a></td>
+              <td class="small"><%= u.dernier_login ? f.dateHeureFr(u.dernier_login) : 'jamais' %></td>
+              <td><span class="badge <%= u.actif ? 'text-bg-success' : 'text-bg-secondary' %>"><%= u.actif ? 'Actif' : 'Désactivé' %></span></td>
+              <td class="text-end text-nowrap">
+                <form method="post" action="/utilisateurs/<%= u.id %>/reinitialiser" class="d-inline" data-confirm="Réinitialiser le mot de passe ?">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-light" title="Réinitialiser le mot de passe"><i class="bi bi-key"></i></button>
+                </form>
+                <form method="post" action="/utilisateurs/<%= u.id %>/actif" class="d-inline">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-light" title="<%= u.actif ? 'Désactiver' : 'Activer' %>"><i class="bi <%= u.actif ? 'bi-person-dash' : 'bi-person-check' %>"></i></button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+          <% if (!adherents.length) { %><tr><td colspan="5" class="empty-state small">Les accès adhérents se créent depuis la fiche de chaque adhérent.</td></tr><% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <form method="post" action="/utilisateurs" class="card">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <div class="card-header">Nouvel administrateur</div>
+      <div class="card-body">
+        <div class="mb-3"><label class="form-label" for="identifiant">Identifiant</label><input class="form-control" id="identifiant" name="identifiant" required pattern="[a-zA-Z0-9._-]{3,30}" placeholder="ex. tresorier"></div>
+        <div class="mb-3"><label class="form-label" for="nom_complet">Nom complet</label><input class="form-control" id="nom_complet" name="nom_complet"></div>
+        <div class="mb-3"><label class="form-label" for="mot_de_passe">Mot de passe provisoire</label><input type="text" class="form-control" id="mot_de_passe" name="mot_de_passe" required minlength="8"><div class="form-text">À changer à la première connexion.</div></div>
+        <button class="btn btn-primary w-100"><i class="bi bi-person-plus"></i> Créer le compte</button>
+      </div>
+    </form>
+  </div>
+</div>

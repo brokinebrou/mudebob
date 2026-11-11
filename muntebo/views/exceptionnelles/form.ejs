@@ -1,0 +1,71 @@
+<form method="post" action="/exceptionnelles" class="row g-3">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% if (erreurs.length) { %>
+    <div class="col-12"><div class="alert alert-danger mb-0"><ul class="mb-0 ps-3"><% erreurs.forEach(e => { %><li><%= e %></li><% }) %></ul></div></div>
+  <% } %>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Appel de cotisation</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label" for="libelle">Libellé <span class="text-danger">*</span></label>
+          <input class="form-control" id="libelle" name="libelle" value="<%= c.libelle || '' %>" required maxlength="100" placeholder="ex. Soutien famille KONAN — décès">
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="motif">Motif / description</label>
+          <textarea class="form-control" id="motif" name="motif" rows="3"><%= c.motif || '' %></textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="montant_par_adherent">Montant par adhérent <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <input type="number" class="form-control" id="montant_par_adherent" name="montant_par_adherent" min="1" value="<%= c.montant_par_adherent || '' %>" required>
+            <span class="input-group-text">FCFA</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="date_appel">Date de l'appel</label>
+          <input type="date" class="form-control" id="date_appel" name="date_appel" value="<%= c.date_appel %>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="date_echeance">Échéance</label>
+          <input type="date" class="form-control" id="date_echeance" name="date_echeance" value="<%= c.date_echeance || '' %>">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Adhérents concernés</div>
+      <div class="card-body">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="cible" id="cible-tous" value="tous" <%= c.cible !== 'selection' ? 'checked' : '' %>>
+          <label class="form-check-label" for="cible-tous">Tous les adhérents actifs (<%= adherents.length %>)</label>
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="radio" name="cible" id="cible-sel" value="selection" <%= c.cible === 'selection' ? 'checked' : '' %>>
+          <label class="form-check-label" for="cible-sel">Une sélection d'adhérents</label>
+        </div>
+        <div id="zone-selection" hidden>
+          <div class="d-flex gap-2 mb-2">
+            <input type="search" class="form-control form-control-sm" id="filtre-adherents" placeholder="Filtrer…">
+            <div class="form-check text-nowrap align-self-center">
+              <input class="form-check-input" type="checkbox" id="tout-cocher"><label class="form-check-label small" for="tout-cocher">Tout cocher</label>
+            </div>
+          </div>
+          <div class="border rounded p-2" style="max-height:300px;overflow-y:auto">
+            <% adherents.forEach(a => { %>
+              <div class="form-check" data-nom="<%= (a.nom + ' ' + a.prenoms + ' ' + a.matricule).toLowerCase() %>">
+                <input class="form-check-input" type="checkbox" name="adherents" value="<%= a.id %>" id="adh-<%= a.id %>" <%= selection.includes(a.id) ? 'checked' : '' %>>
+                <label class="form-check-label" for="adh-<%= a.id %>"><%= a.nom %> <%= a.prenoms %> <span class="text-muted small"><%= a.matricule %></span></label>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <a href="/exceptionnelles" class="btn btn-light">Annuler</a>
+      <button class="btn btn-primary"><i class="bi bi-check2"></i> Lancer l'appel de cotisation</button>
+    </div>
+  </div>
+</form>

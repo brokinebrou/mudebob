@@ -1,0 +1,45 @@
+<div class="row g-3">
+  <div class="col-md-6 col-xl-3">
+    <div class="card h-100"><div class="card-body">
+      <div class="stat-icon bg-soft-vert mb-3"><i class="bi bi-people"></i></div>
+      <h3 class="h6">Liste des adhérents</h3>
+      <p class="small text-muted">Coordonnées, catégorie, statut et reste dû de chaque adhérent.</p>
+      <a href="/exports/adherents.xlsx" class="btn btn-outline-primary btn-sm"><i class="bi bi-download"></i> Télécharger</a>
+    </div></div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card h-100"><div class="card-body">
+      <div class="stat-icon bg-soft-bleu mb-3"><i class="bi bi-cash-coin"></i></div>
+      <h3 class="h6">Versements sur une période</h3>
+      <form method="get" action="/exports/versements.xlsx" class="row g-2">
+        <div class="col-6"><label class="form-label small mb-0">Du</label><input type="date" name="du" class="form-control form-control-sm" value="<%= f.aujourdHui().slice(0, 4) %>-01-01"></div>
+        <div class="col-6"><label class="form-label small mb-0">Au</label><input type="date" name="au" class="form-control form-control-sm" value="<%= f.aujourdHui() %>"></div>
+        <div class="col-12">
+          <select name="type" class="form-select form-select-sm"><option value="">Tous les types</option><option value="normale">Normales</option><option value="exceptionnelle">Exceptionnelles</option></select>
+        </div>
+        <div class="col-12"><button class="btn btn-outline-primary btn-sm"><i class="bi bi-download"></i> Télécharger</button></div>
+      </form>
+    </div></div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card h-100"><div class="card-body">
+      <div class="stat-icon bg-soft-rouge mb-3"><i class="bi bi-exclamation-octagon"></i></div>
+      <h3 class="h6">État des impayés</h3>
+      <p class="small text-muted">Adhérents en retard, avec le détail des sommes dues.</p>
+      <a href="/exports/impayes.xlsx" class="btn btn-outline-primary btn-sm"><i class="bi bi-download"></i> Télécharger</a>
+    </div></div>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <div class="card h-100"><div class="card-body">
+      <div class="stat-icon bg-soft-or mb-3"><i class="bi bi-lightning-charge"></i></div>
+      <h3 class="h6">Recouvrement d'une cotisation exceptionnelle</h3>
+      <% if (exceptionnelles.length) { %>
+        <div class="d-flex flex-column gap-1 mt-2" style="max-height:160px;overflow-y:auto">
+          <% exceptionnelles.forEach(e => { %><a href="/exports/exceptionnelle/<%= e.id %>.xlsx" class="small"><i class="bi bi-download"></i> <%= e.libelle %></a><% }) %>
+        </div>
+      <% } else { %>
+        <p class="small text-muted">Aucune cotisation exceptionnelle.</p>
+      <% } %>
+    </div></div>
+  </div>
+</div>

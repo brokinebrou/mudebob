@@ -1,0 +1,28 @@
+<%# Grille de situation des cotisations normales — variables : situation %>
+<%
+  const ETATS = { a_jour: 'À jour', partiel: 'Partiel', impaye: 'Impayé', avance: "Payé d'avance" };
+  const lignes = situation.lignes.slice().reverse();
+%>
+<div class="row g-3 mb-3 text-center">
+  <div class="col-4"><div class="small text-muted">Total dû</div><div class="fw-bold"><%= f.fcfa(situation.totalDu) %></div></div>
+  <div class="col-4"><div class="small text-muted">Total versé</div><div class="fw-bold text-success"><%= f.fcfa(situation.totalPaye) %></div></div>
+  <div class="col-4"><div class="small text-muted">Reste à payer</div><div class="fw-bold <%= situation.reste ? 'text-danger' : 'text-success' %>"><%= f.fcfa(situation.reste) %></div></div>
+</div>
+<% if (lignes.length) { %>
+  <div class="grille-periodes">
+    <% lignes.forEach(l => { %>
+      <div class="periode etat-<%= l.etat %>" title="<%= l.categorie %> — dû <%= f.fcfa(l.du) %>, versé <%= f.fcfa(l.paye) %>">
+        <div class="p-lib"><%= f.libellePeriodeCourt(l.periode) %></div>
+        <div class="p-mt"><%= ETATS[l.etat] %><% if (l.etat === 'partiel') { %> · reste <%= f.nombre(l.reste) %><% } %></div>
+      </div>
+    <% }) %>
+  </div>
+  <div class="d-flex flex-wrap gap-3 mt-3 small text-muted">
+    <span><span class="badge badge-etat etat-a_jour">&nbsp;</span> À jour</span>
+    <span><span class="badge badge-etat etat-partiel">&nbsp;</span> Partiel</span>
+    <span><span class="badge badge-etat etat-impaye">&nbsp;</span> Impayé</span>
+    <span><span class="badge badge-etat etat-avance">&nbsp;</span> Payé d'avance</span>
+  </div>
+<% } else { %>
+  <div class="empty-state"><i class="bi bi-calendar"></i>Aucune période exigible pour le moment.</div>
+<% } %>

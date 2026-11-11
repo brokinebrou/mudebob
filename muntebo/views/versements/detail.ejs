@@ -1,0 +1,49 @@
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Reçu <%= v.numero_recu %></span>
+        <% if (v.annule) { %><span class="badge text-bg-danger">Annulé</span><% } else { %><span class="badge text-bg-success">Valide</span><% } %>
+      </div>
+      <div class="card-body">
+        <div class="text-center py-3 mb-3 rounded" style="background:var(--mt-vert-clair)">
+          <div class="small text-muted">Montant versé</div>
+          <div class="display-6 fw-bold text-primary"><%= f.fcfa(v.montant) %></div>
+        </div>
+        <dl class="row dl-fiche mb-0">
+          <dt class="col-sm-4">Adhérent</dt><dd class="col-sm-8"><a href="/adherents/<%= v.adherent_id %>"><%= v.nom %> <%= v.prenoms %></a> (<%= v.matricule %>)</dd>
+          <dt class="col-sm-4">Date</dt><dd class="col-sm-8"><%= f.dateLongue(v.date_versement) %></dd>
+          <dt class="col-sm-4">Objet</dt><dd class="col-sm-8"><%= v.type === 'normale' ? 'Cotisation normale — ' + f.libellePeriode(v.periode) : 'Cotisation exceptionnelle — ' + v.exc_libelle %></dd>
+          <dt class="col-sm-4">Mode</dt><dd class="col-sm-8"><%= v.mode %><%= v.reference ? ' — réf. ' + v.reference : '' %></dd>
+          <% if (v.observations) { %><dt class="col-sm-4">Observations</dt><dd class="col-sm-8"><%= v.observations %></dd><% } %>
+          <dt class="col-sm-4">Enregistré par</dt><dd class="col-sm-8"><%= v.saisi_par_nom || v.saisi_par_id %> le <%= f.dateHeureFr(v.cree_le) %></dd>
+          <% if (v.annule) { %>
+            <dt class="col-sm-4 text-danger">Annulation</dt>
+            <dd class="col-sm-8 text-danger">Le <%= f.dateHeureFr(v.annule_le) %> par <%= annulePar ? annulePar.identifiant : '' %><br>Motif : <%= v.motif_annulation %></dd>
+          <% } %>
+        </dl>
+      </div>
+      <div class="card-footer bg-white d-flex flex-wrap gap-2 py-3">
+        <a href="/versements/<%= v.id %>/recu.pdf" target="_blank" class="btn btn-primary"><i class="bi bi-printer"></i> Imprimer le reçu</a>
+        <a href="/versements/nouveau?adherent=<%= v.adherent_id %>" class="btn btn-outline-primary"><i class="bi bi-plus-lg"></i> Autre versement pour cet adhérent</a>
+        <a href="/versements" class="btn btn-light ms-auto">Retour à la liste</a>
+      </div>
+    </div>
+  </div>
+  <% if (!v.annule) { %>
+  <div class="col-lg-5">
+    <div class="card border-danger-subtle">
+      <div class="card-header text-danger"><i class="bi bi-x-octagon"></i> Annuler ce versement</div>
+      <div class="card-body">
+        <p class="small text-muted">Un versement n'est jamais effacé : il est marqué comme annulé, retiré des totaux et conservé dans le journal.</p>
+        <form method="post" action="/versements/<%= v.id %>/annuler" data-confirm="Confirmer l'annulation de ce versement ?">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <label class="form-label" for="motif">Motif de l'annulation</label>
+          <textarea class="form-control mb-3" id="motif" name="motif" rows="2" required minlength="3" placeholder="ex. erreur de saisie du montant"></textarea>
+          <button class="btn btn-outline-danger w-100">Annuler le versement</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <% } %>
+</div>

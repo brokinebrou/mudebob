@@ -1,0 +1,23 @@
+<form class="filtres d-flex gap-2" method="get">
+  <input type="search" name="q" class="form-control" value="<%= q %>" placeholder="Rechercher une action, un utilisateur, un détail…">
+  <button class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+</form>
+<div class="card">
+  <div class="card-header">500 dernières opérations</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover">
+      <thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Détails</th></tr></thead>
+      <tbody>
+      <% lignes.forEach(l => { %>
+        <tr>
+          <td class="text-nowrap small"><%= f.dateHeureFr(l.le) %></td>
+          <td><%= l.utilisateur || '—' %></td>
+          <td><%= l.action %></td>
+          <td class="small text-muted"><%= l.details %></td>
+        </tr>
+      <% }) %>
+      <% if (!lignes.length) { %><tr><td colspan="4" class="empty-state">Aucune opération.</td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

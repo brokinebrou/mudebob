@@ -1,0 +1,28 @@
+<div class="card mx-auto" style="max-width:520px">
+  <div class="card-body p-4">
+    <% if (user.doit_changer_mdp) { %>
+      <div class="alert alert-warning"><i class="bi bi-shield-lock"></i> Pour votre sécurité, choisissez un nouveau mot de passe avant de continuer.</div>
+    <% } %>
+    <% if (erreur) { %><div class="alert alert-danger"><%= erreur %></div><% } %>
+    <form method="post" action="/mot-de-passe">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <div class="mb-3">
+        <label class="form-label" for="actuel">Mot de passe actuel</label>
+        <input type="password" class="form-control" id="actuel" name="actuel" required autocomplete="current-password">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="nouveau">Nouveau mot de passe</label>
+        <div class="input-group">
+          <input type="password" class="form-control" id="nouveau" name="nouveau" required minlength="8" autocomplete="new-password">
+          <button type="button" class="btn btn-outline-secondary" data-toggle-password="nouveau"><i class="bi bi-eye"></i></button>
+        </div>
+        <div class="form-text">Au moins 8 caractères, avec des lettres et des chiffres.</div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label" for="confirmation">Confirmer le nouveau mot de passe</label>
+        <input type="password" class="form-control" id="confirmation" name="confirmation" required autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary w-100">Enregistrer le nouveau mot de passe</button>
+    </form>
+  </div>
+</div>

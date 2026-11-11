@@ -1,0 +1,30 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <p class="text-muted mb-0">Appels de fonds ponctuels : décès, événement, projet, aide à un membre…</p>
+  <a href="/exceptionnelles/nouvelle" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nouvelle cotisation</a>
+</div>
+<div class="row g-3">
+  <% liste.forEach(c => { %>
+    <div class="col-md-6 col-xl-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <a href="/exceptionnelles/<%= c.id %>" class="h6 mb-0 fw-semibold"><%= c.libelle %></a>
+            <span class="badge <%= c.cloturee ? 'text-bg-secondary' : 'bg-soft-or' %>"><%= c.cloturee ? 'Clôturée' : 'En cours' %></span>
+          </div>
+          <% if (c.motif) { %><p class="small text-muted mb-2"><%= c.motif %></p><% } %>
+          <div class="small mb-3">
+            <i class="bi bi-cash"></i> <%= f.fcfa(c.montant_par_adherent) %> par adhérent ·
+            <i class="bi bi-people"></i> <%= c.rec.lignes.length %> concerné(s)
+            <% if (c.date_echeance) { %><br><i class="bi bi-calendar-event"></i> Échéance : <%= f.dateFr(c.date_echeance) %><% } %>
+          </div>
+          <div class="d-flex justify-content-between small mb-1"><span><%= f.fcfa(c.rec.paye) %> / <%= f.fcfa(c.rec.du) %></span><strong><%= c.rec.taux %> %</strong></div>
+          <div class="progress"><div class="progress-bar" style="width: <%= c.rec.taux %>%"></div></div>
+          <div class="small text-muted mt-2"><%= c.rec.nbPayeurs %> payé(s) sur <%= c.rec.lignes.length %></div>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+  <% if (!liste.length) { %>
+    <div class="col-12"><div class="card"><div class="card-body empty-state"><i class="bi bi-lightning"></i>Aucune cotisation exceptionnelle pour le moment.</div></div></div>
+  <% } %>
+</div>

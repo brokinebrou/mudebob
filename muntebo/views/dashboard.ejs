@@ -1,0 +1,154 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <div class="text-muted">Bonjour <strong><%= user.nom_complet || user.identifiant %></strong>, voici la situation au <%= f.dateLongue(f.aujourdHui()) %>.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/adherents/nouveau" class="btn btn-outline-primary btn-sm"><i class="bi bi-person-plus"></i> Nouvel adhérent</a>
+    <a href="/versements/nouveau" class="btn btn-primary btn-sm"><i class="bi bi-cash-coin"></i> Nouveau versement</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="stat-icon bg-soft-vert"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="stat-label">Adhérents actifs</div>
+        <div class="stat-value"><%= stats.actifs %></div>
+        <div class="small text-muted"><%= stats.nbAJour %> à jour · <%= stats.actifs - stats.nbAJour %> en retard</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="stat-icon bg-soft-bleu"><i class="bi bi-calendar2-check"></i></div>
+      <div>
+        <div class="stat-label">Encaissé ce mois</div>
+        <div class="stat-value"><%= f.nombre(stats.encMois) %> <small class="fs-6 fw-normal">FCFA</small></div>
+        <div class="small text-muted text-capitalize"><%= f.libellePeriode(f.aujourdHui().slice(0, 7)) %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="stat-icon bg-soft-or"><i class="bi bi-graph-up-arrow"></i></div>
+      <div>
+        <div class="stat-label">Encaissé cette année</div>
+        <div class="stat-value"><%= f.nombre(stats.encAnnee) %> <small class="fs-6 fw-normal">FCFA</small></div>
+        <div class="small text-muted">Année <%= f.aujourdHui().slice(0, 4) %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card">
+      <div class="stat-icon bg-soft-rouge"><i class="bi bi-exclamation-octagon"></i></div>
+      <div>
+        <div class="stat-label">Total des impayés</div>
+        <div class="stat-value"><%= f.nombre(stats.totalImpayes) %> <small class="fs-6 fw-normal">FCFA</small></div>
+        <a href="/exports/impayes.xlsx" class="small"><i class="bi bi-download"></i> État des impayés</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-xl-8">
+    <div class="card h-100">
+      <div class="card-header">Encaissements des 12 derniers mois</div>
+      <div class="card-body"><div class="chart-box"><canvas id="graph-encaissements" aria-label="Graphique des encaissements mensuels"></canvas></div></div>
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="card h-100">
+      <div class="card-header">Adhérents actifs par catégorie</div>
+      <div class="card-body"><div class="chart-box"><canvas id="graph-categories" aria-label="Répartition par catégorie"></canvas></div></div>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="donnees-graphiques"><%- JSON.stringify(chart).replace(/</g, '\\u003c') %></script>
+
+<div class="row g-3 mb-3">
+  <div class="col-xl-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        Derniers versements <a href="/versements" class="small fw-normal">Tout voir</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>Date</th><th>Adhérent</th><th>Objet</th><th class="text-end">Montant</th></tr></thead>
+          <tbody>
+          <% derniers.forEach(v => { %>
+            <tr class="<%= v.annule ? 'annule' : '' %>">
+              <td class="text-nowrap"><a href="/versements/<%= v.id %>"><%= f.dateFr(v.date_versement) %></a></td>
+              <td><%= v.nom %> <%= v.prenoms %></td>
+              <td class="small"><%= v.type === 'normale' ? f.libellePeriode(v.periode) : v.exc_libelle %></td>
+              <td class="montant fw-semibold"><%= f.fcfa(v.montant) %></td>
+            </tr>
+          <% }) %>
+          <% if (!derniers.length) { %><tr><td colspan="4" class="empty-state"><i class="bi bi-inbox"></i>Aucun versement enregistré</td></tr><% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        Adhérents les plus en retard <a href="/adherents?situation=retard" class="small fw-normal">Tout voir</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>Adhérent</th><th class="text-center">Périodes</th><th class="text-end">Reste dû</th></tr></thead>
+          <tbody>
+          <% retards.forEach(a => { %>
+            <tr>
+              <td><a href="/adherents/<%= a.id %>"><%= a.nom %> <%= a.prenoms %></a><div class="small text-muted"><%= a.categorie %></div></td>
+              <td class="text-center"><%= a.situation.periodesImpayees %></td>
+              <td class="montant text-danger fw-semibold"><%= f.fcfa(a.resteTotal) %></td>
+            </tr>
+          <% }) %>
+          <% if (!retards.length) { %><tr><td colspan="3" class="empty-state"><i class="bi bi-emoji-smile"></i>Tous les adhérents sont à jour</td></tr><% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        Cotisations exceptionnelles en cours <a href="/exceptionnelles" class="small fw-normal">Gérer</a>
+      </div>
+      <div class="card-body">
+        <% exceptionnellesEnCours.forEach(c => { %>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <a href="/exceptionnelles/<%= c.id %>" class="fw-semibold"><%= c.libelle %></a>
+              <span><%= f.fcfa(c.paye) %> / <%= f.fcfa(c.du) %> · <strong><%= c.taux %> %</strong></span>
+            </div>
+            <div class="progress"><div class="progress-bar" style="width: <%= c.taux %>%"></div></div>
+          </div>
+        <% }) %>
+        <% if (!exceptionnellesEnCours.length) { %><div class="empty-state"><i class="bi bi-lightning"></i>Aucune cotisation exceptionnelle en cours</div><% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        Derniers PV <a href="/pv" class="small fw-normal">Tout voir</a>
+      </div>
+      <ul class="list-group list-group-flush">
+        <% derniersPv.forEach(p => { %>
+          <li class="list-group-item d-flex gap-3 align-items-center">
+            <div class="pv-icone"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="flex-grow-1"><a href="/pv/<%= p.id %>" class="fw-semibold"><%= p.titre %></a><div class="small text-muted"><%= p.type_reunion %> · <%= f.dateFr(p.date_reunion) %></div></div>
+          </li>
+        <% }) %>
+        <% if (!derniersPv.length) { %><li class="list-group-item empty-state"><i class="bi bi-folder2-open"></i>Aucun PV déposé</li><% } %>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,119 @@
+<div class="row g-3">
+  <div class="col-lg-7">
+    <% if (erreurs.length) { %>
+      <div class="alert alert-danger"><ul class="mb-0 ps-3"><% erreurs.forEach(e => { %><li><%= e %></li><% }) %></ul></div>
+    <% } %>
+
+    <div class="card mb-3">
+      <div class="card-header"><span class="badge rounded-pill text-bg-dark me-2">1</span>Adhérent</div>
+      <div class="card-body">
+        <% if (adherent) { %>
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold fs-5"><%= adherent.nom %> <%= adherent.prenoms %></div>
+              <div class="small text-muted"><%= adherent.matricule %> · <%= adherent.categorie %> (<%= f.fcfa(adherent.categorie_montant) %> / <%= periodicite === 'annuelle' ? 'an' : 'mois' %>)</div>
+            </div>
+            <a href="/versements/nouveau" class="btn btn-sm btn-light">Changer</a>
+          </div>
+        <% } else { %>
+          <div class="autocomplete">
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+              <input type="search" class="form-control form-control-lg" placeholder="Tapez le nom ou le matricule de l'adhérent…" data-autocomplete="/versements/nouveau?adherent=" autocomplete="off" autofocus>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (adherent) { %>
+    <form method="post" action="/versements" id="form-versement" class="card">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input type="hidden" name="adherent_id" value="<%= adherent.id %>">
+      <div class="card-header"><span class="badge rounded-pill text-bg-dark me-2">2</span>Détails du versement</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label">Type de cotisation</label>
+          <div class="d-flex gap-2">
+            <input type="radio" class="btn-check" name="type" id="type-n" value="normale" <%= v.type !== 'exceptionnelle' ? 'checked' : '' %>>
+            <label class="btn btn-outline-primary flex-fill" for="type-n"><i class="bi bi-calendar-check"></i> Cotisation normale</label>
+            <input type="radio" class="btn-check" name="type" id="type-e" value="exceptionnelle" <%= v.type === 'exceptionnelle' ? 'checked' : '' %> <%= exceptionnelles.length ? '' : 'disabled' %>>
+            <label class="btn btn-outline-primary flex-fill" for="type-e"><i class="bi bi-lightning-charge"></i> Cotisation exceptionnelle</label>
+          </div>
+          <% if (!exceptionnelles.length) { %><div class="form-text">Aucune cotisation exceptionnelle en cours pour cet adhérent.</div><% } %>
+        </div>
+
+        <div class="col-12" data-type="normale">
+          <label class="form-label" for="periode">Période concernée</label>
+          <select class="form-select" id="periode" name="periode">
+            <% periodes.forEach(p => { %>
+              <option value="<%= p.periode %>" data-reste="<%= p.reste %>" <%= v.periode === p.periode ? 'selected' : '' %>><%= p.libelle %></option>
+            <% }) %>
+          </select>
+          <div class="form-text">Les périodes impayées sont proposées en premier.</div>
+        </div>
+
+        <div class="col-12" data-type="exceptionnelle" hidden>
+          <label class="form-label" for="cotisation_exc_id">Cotisation exceptionnelle</label>
+          <select class="form-select" id="cotisation_exc_id" name="cotisation_exc_id">
+            <% exceptionnelles.forEach(e => { %>
+              <option value="<%= e.id %>" data-reste="<%= e.reste %>" <%= Number(v.cotisation_exc_id) === e.id ? 'selected' : '' %>><%= e.libelle %> — reste <%= f.fcfa(e.reste) %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="montant">Montant (FCFA)</label>
+          <div class="input-group">
+            <input type="number" class="form-control form-control-lg fw-semibold" id="montant" name="montant" min="1" step="1" value="<%= v.montant || '' %>" required data-auto="1">
+            <span class="input-group-text">FCFA</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="date_versement">Date du versement</label>
+          <input type="date" class="form-control form-control-lg" id="date_versement" name="date_versement" value="<%= v.date_versement %>" max="<%= f.aujourdHui() %>" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="mode">Mode de paiement</label>
+          <select class="form-select" id="mode" name="mode">
+            <% MODES.forEach(m => { %><option <%= v.mode === m ? 'selected' : '' %>><%= m %></option><% }) %>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="reference">Référence <span class="text-muted small">(n° transaction, chèque…)</span></label>
+          <input class="form-control" id="reference" name="reference" value="<%= v.reference || '' %>" maxlength="60">
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="observations">Observations</label>
+          <input class="form-control" id="observations" name="observations" value="<%= v.observations || '' %>" maxlength="200">
+        </div>
+      </div>
+      <div class="card-footer bg-white d-flex justify-content-end gap-2 py-3">
+        <a href="/adherents/<%= adherent.id %>" class="btn btn-light">Annuler</a>
+        <button class="btn btn-primary px-4"><i class="bi bi-check2-circle"></i> Enregistrer le versement</button>
+      </div>
+    </form>
+    <% } %>
+  </div>
+
+  <div class="col-lg-5">
+    <% if (adherent && situation) { %>
+      <div class="card mb-3">
+        <div class="card-header">Situation des cotisations normales</div>
+        <div class="card-body"><%- include('../partials/situation', { situation }) %></div>
+      </div>
+      <% if (exceptionnelles.length) { %>
+      <div class="card">
+        <div class="card-header">Cotisations exceptionnelles en cours</div>
+        <ul class="list-group list-group-flush">
+          <% exceptionnelles.forEach(e => { %>
+            <li class="list-group-item d-flex justify-content-between"><span><%= e.libelle %></span><span class="<%= e.reste ? 'text-danger' : 'text-success' %> fw-semibold"><%= e.reste ? 'reste ' + f.fcfa(e.reste) : 'payé' %></span></li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+    <% } else { %>
+      <div class="card"><div class="card-body empty-state"><i class="bi bi-person-check"></i>Sélectionnez un adhérent pour voir sa situation et enregistrer son versement.</div></div>
+    <% } %>
+  </div>
+</div>

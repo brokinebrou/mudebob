@@ -1,0 +1,136 @@
+<% const initiales = (a.nom[0] + (a.prenoms[0] || '')).toUpperCase(); %>
+<div class="card mb-3">
+  <div class="card-body d-flex flex-wrap justify-content-between gap-3 align-items-center">
+    <div class="fiche-entete">
+      <% if (a.photo) { %>
+        <a href="/adherents/<%= a.id %>/photo" target="_blank" title="Agrandir la photo"><img src="/adherents/<%= a.id %>/photo" alt="Photo de <%= a.prenoms %> <%= a.nom %>" class="fiche-photo" style="width:84px;height:100px"></a>
+      <% } else { %>
+        <div class="fiche-avatar"><%= initiales %></div>
+      <% } %>
+      <div>
+        <h2 class="h4 mb-1"><%= a.nom %> <%= a.prenoms %></h2>
+        <div class="text-muted small">
+          <%= a.matricule %> · <%= a.categorie %> (<%= f.fcfa(a.categorie_montant) %> / <%= params.periodicite === 'annuelle' ? 'an' : 'mois' %>)
+          · <span class="badge badge-etat statut-<%= a.statut %>"><%= f.STATUTS[a.statut] %></span>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="/versements/nouveau?adherent=<%= a.id %>" class="btn btn-primary"><i class="bi bi-cash-coin"></i> Enregistrer un versement</a>
+      <a href="/adherents/<%= a.id %>/carte.pdf" target="_blank" class="btn btn-outline-success"><i class="bi bi-person-vcard"></i> Carte de membre</a>
+      <a href="/adherents/<%= a.id %>/modifier" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Modifier</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-xl-4">
+    <div class="card mb-3">
+      <div class="card-header">Informations</div>
+      <div class="card-body">
+        <dl class="dl-fiche mb-0">
+          <dt>Téléphone</dt><dd><%= a.telephone || '—' %></dd>
+          <dt>E-mail</dt><dd><%= a.email || '—' %></dd>
+          <dt>Adresse</dt><dd><%= a.adresse || '—' %></dd>
+          <dt>Profession</dt><dd><%= a.profession || '—' %></dd>
+          <dt>Sexe / naissance</dt><dd><%= a.sexe === 'M' ? 'Masculin' : a.sexe === 'F' ? 'Féminin' : '—' %><%= a.date_naissance ? ' · né(e) le ' + f.dateFr(a.date_naissance) : '' %><%= a.lieu_naissance ? (a.date_naissance ? ' à ' : ' · né(e) à ') + a.lieu_naissance : '' %></dd>
+          <dt>Famille</dt><dd><%= a.famille || '—' %></dd>
+          <dt>Père</dt><dd><%= a.nom_pere || '—' %></dd>
+          <dt>Mère</dt><dd><%= a.nom_mere || '—' %></dd>
+          <dt>Date d'adhésion</dt><dd><%= f.dateLongue(a.date_adhesion) %></dd>
+          <% if (a.date_sortie) { %><dt>Date de sortie / suspension</dt><dd><%= f.dateLongue(a.date_sortie) %></dd><% } %>
+          <% if (historiqueCat.length > 1) { %>
+            <dt>Historique des catégories</dt>
+            <dd><% historiqueCat.forEach(h => { %><div class="small"><%= h.periode_debut === '0000' ? "Depuis l'adhésion" : 'À partir de ' + f.libellePeriode(h.periode_debut) %> : <%= h.libelle %></div><% }) %></dd>
+          <% } %>
+          <% if (a.observations) { %><dt>Observations</dt><dd class="small"><%= a.observations %></dd><% } %>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header">Statut</div>
+      <div class="card-body">
+        <form method="post" action="/adherents/<%= a.id %>/statut" class="row g-2" data-confirm="Confirmer le changement de statut ?">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <div class="col-6">
+            <select name="statut" class="form-select form-select-sm">
+              <% Object.entries(f.STATUTS).forEach(([k, v]) => { %><option value="<%= k %>" <%= a.statut === k ? 'selected' : '' %>><%= v %></option><% }) %>
+            </select>
+          </div>
+          <div class="col-6"><input type="date" name="date_sortie" class="form-control form-control-sm" value="<%= a.date_sortie || f.aujourdHui() %>" title="Date d'effet (suspension ou radiation)"></div>
+          <div class="col-12"><button class="btn btn-sm btn-outline-secondary w-100">Mettre à jour le statut</button></div>
+          <div class="col-12 form-text">Les cotisations cessent d'être dues après la date de suspension ou de radiation.</div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" id="compte">
+      <div class="card-header">Accès à l'espace adhérent</div>
+      <div class="card-body">
+        <% if (motDePasseTemporaire) { %>
+          <div class="alert alert-warning">
+            <div class="fw-semibold mb-2">À communiquer à l'adhérent :</div>
+            <div>Identifiant : <span class="mdp-temp"><%= motDePasseTemporaire.identifiant %></span></div>
+            <div class="mt-2">Mot de passe provisoire : <span class="mdp-temp"><%= motDePasseTemporaire.mdp %></span>
+              <button type="button" class="btn btn-sm btn-light ms-1" data-copy="<%= motDePasseTemporaire.mdp %>"><i class="bi bi-clipboard"></i></button></div>
+            <div class="small mt-2">Ce mot de passe ne sera plus affiché. L'adhérent devra le changer à la première connexion.</div>
+          </div>
+        <% } %>
+        <% if (compte) { %>
+          <p class="mb-2">Identifiant : <strong><%= compte.identifiant %></strong>
+            <span class="badge <%= compte.actif ? 'text-bg-success' : 'text-bg-secondary' %> ms-1"><%= compte.actif ? 'Actif' : 'Désactivé' %></span></p>
+          <p class="small text-muted">Dernière connexion : <%= compte.dernier_login ? f.dateHeureFr(compte.dernier_login) : 'jamais' %></p>
+          <div class="d-flex gap-2">
+            <form method="post" action="/adherents/<%= a.id %>/compte" data-confirm="Générer un nouveau mot de passe provisoire ?">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="btn btn-sm btn-outline-primary"><i class="bi bi-key"></i> Réinitialiser</button>
+            </form>
+            <form method="post" action="/adherents/<%= a.id %>/compte/desactiver">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="btn btn-sm btn-outline-secondary"><%= compte.actif ? 'Désactiver' : 'Réactiver' %></button>
+            </form>
+          </div>
+        <% } else { %>
+          <p class="small text-muted">L'adhérent n'a pas encore d'accès. Créez-le pour qu'il puisse consulter sa situation, ses reçus et les PV publiés.</p>
+          <form method="post" action="/adherents/<%= a.id %>/compte">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn btn-sm btn-primary"><i class="bi bi-person-lock"></i> Créer l'accès</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-8">
+    <div class="card mb-3">
+      <div class="card-header">Cotisations normales</div>
+      <div class="card-body"><%- include('../partials/situation', { situation }) %></div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header">Cotisations exceptionnelles</div>
+      <%- include('../partials/exceptionnelles-adherent', { exceptionnelles }) %>
+    </div>
+    <div class="card">
+      <div class="card-header">Historique des versements</div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead><tr><th>Date</th><th>N° reçu</th><th>Objet</th><th>Mode</th><th class="text-end">Montant</th><th></th></tr></thead>
+          <tbody>
+          <% versements.forEach(v => { %>
+            <tr class="<%= v.annule ? 'annule' : '' %>">
+              <td class="text-nowrap"><%= f.dateFr(v.date_versement) %></td>
+              <td><a href="/versements/<%= v.id %>"><%= v.numero_recu %></a></td>
+              <td><%= v.type === 'normale' ? 'Cotisation ' + f.libellePeriode(v.periode) : v.exc_libelle %><% if (v.annule) { %> <span class="badge text-bg-danger">Annulé</span><% } %></td>
+              <td><%= v.mode %></td>
+              <td class="montant fw-semibold"><%= f.fcfa(v.montant) %></td>
+              <td class="text-end"><a href="/versements/<%= v.id %>/recu.pdf" target="_blank" class="btn btn-sm btn-light" title="Reçu PDF"><i class="bi bi-file-earmark-pdf text-danger"></i></a></td>
+            </tr>
+          <% }) %>
+          <% if (!versements.length) { %><tr><td colspan="6" class="empty-state"><i class="bi bi-inbox"></i>Aucun versement</td></tr><% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

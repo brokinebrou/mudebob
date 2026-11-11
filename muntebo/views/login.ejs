@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion · <%= params.nom_association %></title>
+  <link rel="icon" href="/public/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/public/css/muntebo.css">
+</head>
+<body>
+<div class="login-page">
+  <section class="login-visuel">
+    <div class="login-logo">
+      <img src="/public/img/logo.jpg" alt="Logo <%= params.nom_association %>">
+    </div>
+    <div style="position:relative;z-index:1">
+      <h2 class="mb-4">La gestion de votre association, simple et transparente.</h2>
+      <ul class="list-unstyled points fs-6">
+        <li><i class="bi bi-people-fill"></i> Registre des adhérents à jour</li>
+        <li><i class="bi bi-cash-stack"></i> Suivi des cotisations normales et exceptionnelles</li>
+        <li><i class="bi bi-receipt"></i> Reçus de versement en PDF</li>
+        <li><i class="bi bi-file-earmark-text-fill"></i> Archives des procès-verbaux de réunion</li>
+      </ul>
+    </div>
+    <div class="small" style="color:#86b29a;position:relative;z-index:1">© <%= new Date().getFullYear() %> <%= params.nom_association %></div>
+  </section>
+
+  <section class="login-form-zone">
+    <div class="login-box">
+      <div class="d-lg-none text-center mb-4">
+        <img src="/public/img/logo.jpg" alt="Logo <%= params.nom_association %>" style="width:110px;max-width:50%" width="110" height="69">
+      </div>
+      <h1 class="h3 fw-bold mb-1">Connexion</h1>
+      <p class="text-muted mb-4">Accédez à votre espace avec vos identifiants.</p>
+
+      <% if (erreur) { %>
+        <div class="alert alert-danger d-flex gap-2 align-items-start py-2"><i class="bi bi-exclamation-triangle-fill mt-1"></i><div><%= erreur %></div></div>
+      <% } %>
+
+      <form method="post" action="/login" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="mb-3">
+          <label for="identifiant" class="form-label fw-semibold">Identifiant</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" id="identifiant" name="identifiant" value="<%= identifiant %>" required autofocus autocomplete="username" placeholder="ex. admin ou mu-09-25-00004">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label for="mot_de_passe" class="form-label fw-semibold">Mot de passe</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" required autocomplete="current-password">
+            <button type="button" class="btn btn-outline-secondary" data-toggle-password="mot_de_passe" aria-label="Afficher le mot de passe"><i class="bi bi-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">Se connecter <i class="bi bi-arrow-right ms-1"></i></button>
+      </form>
+      <p class="text-muted small mt-4 mb-0"><i class="bi bi-info-circle"></i> Mot de passe oublié ? Adressez-vous au bureau de l'association.</p>
+    </div>
+  </section>
+</div>
+<script src="/public/js/app.js"></script>
+</body>
+</html>
